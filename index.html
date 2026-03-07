@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=yes">
+<title>Ocean Depth Division Rescue</title>
+<style>
+:root{
+--bg:#0c1a2e;
+--bg2:#0a2540;
+--accent1:#0891b2;
+--accent2:#0e7490;
+--glass:rgba(8,145,178,0.45);
+--glass-strong:rgba(10,37,64,0.88);
+--text:#e0f2fe;
+--muted:rgba(224,242,254,0.75);
+--correct:#34d399;
+--incorrect:#f87171;
+--streak:#fbbf24;
+--particle:#67e8f9;
+--shadow:0 18px 48px rgba(0,0,0,0.35);
+--ring:0 0 0 3px rgba(224,242,254,0.92);
+--font:Inter,Arial,Helvetica,sans-serif;
+--size:20px;
+--motion:1;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+margin:0;
+font-family:var(--font);
+background:linear-gradient(180deg,var(--bg2),var(--bg));
+color:var(--text);
+font-size:var(--size);
+overflow:hidden;
+}
+body.high-contrast{
+--bg:#03111f;
+--bg2:#06243a;
+--accent1:#8ce9ff;
+--accent2:#34d399;
+--glass:rgba(0,0,0,0.88);
+--glass-strong:rgba(0,0,0,0.94);
+--text:#ffffff;
+--muted:rgba(255,255,255,0.88);
+--ring:0 0 0 4px #fff;
+}
+button,input{
+font:inherit;
+}
+button{
+min-width:48px;
+min-height:48px;
+border:0;
+border-radius:14px;
+padding:12px 16px;
+background:linear-gradient(180deg,var(--accent1),var(--accent2));
+color:#fff;
+cursor:pointer;
+box-shadow:var(--shadow);
+transition:transform calc(.18s * var(--motion)) ease,opacity calc(.18s * var(--motion)) ease,filter calc(.18s * var(--motion)) ease,background calc(.18s * var(--motion)) ease;
+}
+button:hover{transform:translateY(calc(-2px * var(--motion)));filter:brightness(1.05)}
+button:disabled{opacity:.5;cursor:not-allowed;transform:none}
+button:focus-visible,input:focus-visible,[role="button"]:focus-visible{outline:none;box-shadow:var(--shadow),var(--ring)}
+input{
+border-radius:12px;
+border:2px solid rgba(255,255,255,.22);
+background:rgba(255,255,255,.08);
+color:var(--text);
+padding:12px 14px;
+min-height:48px;
+}
+.hidden{display:none !important}
+.sr-only{
+position:absolute !important;
+width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+#loadingScreen,#app{
+position:fixed;inset:0;
+}
+#loadingScreen{
+display:flex;
+align-items:center;
+justify-content:center;
+background:
+radial-gradient(circle at 15% 20%, rgba(103,232,249,.18), transparent 18%),
+radial-gradient(circle at 80% 30%, rgba(8,145,178,.20), transparent 20%),
+radial-gradient(circle at 60% 85%, rgba(14,116,144,.22), transparent 16%),
+linear-gradient(180deg,var(--bg2),var(--bg));
+z-index:200;
+opacity:1;
+transition:opacity calc(.3s * var(--motion)) ease;
+}
+.loader-card{
+width:min(560px,92vw);
+background:var(--glass-strong);
+border:1px solid rgba(255,255,255,.16);
+border-radius:24px;
+padding:28px;
+box-shadow:var(--shadow);
+backdrop-filter:blur(8px);
+}
+.loader-title{
+font-size:1.55em;
+font-weight:800;
+margin:0 0 10px;
+}
+.loader-sub{
+color:var(--muted);
+margin:0 0 18px;
+line-height:1.4;
+}
+.loader-bar{
+height:16px;
+background:rgba(255,255,255,.1);
+border-radius:999px;
+overflow:hidden;
+border:1px solid rgba(255,255,255,.1);
+}
+.loader-fill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,var(--accent1),var(--particle),var(--accent2));
+border-radius:999px;
+transition:width .15s linear;
+animation:loaderPulse calc(1.2s * var(--motion)) ease-in-out infinite;
+}
+@keyframes loaderPulse{
+0%,100%{filter:brightness(1)}
+50%{filter:brightness(1.18)}
+}
+.parallax-bg,.parallax-bubbles,.particle-canvas{
+position:fixed;inset:0;pointer-events:none;
+}
+.parallax-bg{
+z-index:0;
+background:
+radial-gradient(circle at 10% 20%, rgba(103,232,249,.14) 0 6px, transparent 7px),
+radial-gradient(circle at 20% 70%, rgba(103,232,249,.10) 0 10px, transparent 11px),
+radial-gradient(circle at 40% 35%, rgba(8,145,178,.11) 0 8px, transparent 9px),
+radial-gradient(circle at 70% 18%, rgba(14,116,144,.16) 0 14px, transparent 15px),
+radial-gradient(circle at 82% 60%, rgba(103,232,249,.1) 0 12px, transparent 13px),
+radial-gradient(circle at 55% 82%, rgba(8,145,178,.12) 0 7px, transparent 8px),
+linear-gradient(180deg,var(--bg2),var(--bg));
+background-size:320px 320px,420px 420px,360px 360px,500px 500px,460px 460px,380px 380px,100% 100%;
+animation:parallax calc(60s * var(--motion)) linear infinite;
+}
+@keyframes parallax{
+from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}
+to{background-position:-240px 220px,160px -200px,-200px 140px,120px -160px,-180px 200px,140px -180px,0 0}
+}
+.parallax-bubbles span{
+position:absolute;
+bottom:-12vh;
+display:block;
+width:12px;height:12px;border-radius:50%;
+background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.45), rgba(103,232,249,.05) 65%, transparent 70%);
+animation:bubbleRise linear infinite;
+opacity:.45;
+}
+@keyframes bubbleRise{
+from{transform:translateY(0) scale(1)}
+to{transform:translateY(-120vh) scale(1.5)}
+}
+#app{
+z-index:1;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+opacity:0;
+transition:opacity calc(.3s * var(--motion)) ease;
+}
+.shell{
+position:relative;
+width:min(1120px,100%);
+height:min(90vh,840px);
+display:grid;
+grid-template-columns:280px 1fr;
+gap:18px;
+}
+.panel{
+background:var(--glass);
+border:1px solid rgba(255,255,255,.16);
+border-radius:24px;
+box-shadow:var(--shadow);
+backdrop-filter:blur(10px);
+}
+.sidebar{
+padding:18px;
+display:flex;
+flex-direction:column;
+gap:14px;
+}
+.brand{
+display:flex;
+align-items:center;
+gap:12px;
+}
+.brand-badge{
+width:52px;height:52px;border-radius:16px;
+display:grid;place-items:center;
+background:linear-gradient(180deg,var(--accent1),var(--accent2));
+font-weight:900;
+font-size:1.15em;
+}
+.brand-text h1{
+font-size:1.1em;
+margin:0;
+}
+.brand-text p{
+margin:4px 0 0;
+color:var(--muted);
+font-size:.92em;
+}
+.metric-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+.metric{
+padding:12px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.1);
+}
+.metric-label{
+font-size:.72em;
+text-transform:uppercase;
+letter-spacing:.08em;
+color:var(--muted);
+margin:0 0 6px;
+}
+.metric-value{
+font-size:1.7em;
+font-weight:900;
+line-height:1;
+}
+.progress-wrap{
+padding:12px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.1);
+}
+.progress-track{
+height:14px;
+border-radius:999px;
+overflow:hidden;
+background:rgba(255,255,255,.1);
+}
+.progress-fill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,var(--accent1),var(--particle),var(--accent2));
+transition:width calc(.25s * var(--motion)) ease;
+}
+.toggles,.legend{
+display:grid;
+gap:10px;
+}
+.toggle-btn{
+width:100%;
+justify-content:flex-start;
+text-align:left;
+background:rgba(255,255,255,.08);
+color:var(--text);
+border:1px solid rgba(255,255,255,.12);
+box-shadow:none;
+}
+.start-screen,.game-screen,.results-screen,.error-screen{
+padding:28px;
+display:flex;
+flex-direction:column;
+gap:18px;
+height:100%;
+}
+.main{
+overflow:hidden;
+display:flex;
+flex-direction:column;
+}
+.headline{
+display:flex;
+align-items:flex-start;
+justify-content:space-between;
+gap:16px;
+}
+.headline h2{
+margin:0;
+font-size:1.75em;
+line-height:1.05;
+}
+.subtitle{
+margin:8px 0 0;
+color:var(--muted);
+line-height:1.45;
+max-width:70ch;
+}
+.card-row{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+}
+.info-card{
+padding:16px;
+border-radius:20px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.1);
+min-height:110px;
+}
+.info-card h3{
+margin:0 0 8px;
+font-size:1em;
+}
+.info-card p{
+margin:0;
+color:var(--muted);
+line-height:1.45;
+}
+.stage{
+display:flex;
+flex-direction:column;
+gap:16px;
+min-height:0;
+flex:1;
+}
+.question-card{
+padding:22px;
+border-radius:24px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.12);
+}
+.stem{
+margin:0;
+font-size:1.35em;
+line-height:1.35;
+}
+.visual{
+margin-top:16px;
+padding:14px;
+border-radius:18px;
+background:rgba(255,255,255,.07);
+border:1px solid rgba(255,255,255,.08);
+}
+.table-visual{
+width:100%;
+border-collapse:collapse;
+font-size:.95em;
+}
+.table-visual th,.table-visual td{
+border:1px solid rgba(255,255,255,.2);
+padding:8px 10px;
+text-align:center;
+}
+.nl{
+position:relative;
+height:56px;
+}
+.nl-line{
+position:absolute;left:20px;right:20px;top:24px;height:4px;border-radius:999px;background:rgba(255,255,255,.3);
+}
+.nl-tick{
+position:absolute;top:16px;width:2px;height:20px;background:rgba(255,255,255,.35);
+}
+.nl-label{
+position:absolute;top:34px;transform:translateX(-50%);font-size:.8em;color:var(--muted);
+}
+.choice-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.choice{
+position:relative;
+display:flex;
+align-items:center;
+gap:12px;
+padding:16px 18px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.12);
+color:var(--text);
+box-shadow:none;
+text-align:left;
+}
+.choice .badge{
+width:40px;height:40px;border-radius:12px;
+display:grid;place-items:center;
+font-weight:900;
+background:rgba(255,255,255,.1);
+flex:0 0 auto;
+}
+.choice .txt{
+font-size:1.02em;
+font-weight:700;
+}
+.choice.correct{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.65)}
+.choice.incorrect{background:rgba(248,113,113,.16);border-color:rgba(248,113,113,.62)}
+.choice.locked{opacity:.68}
+.feedback{
+min-height:34px;
+font-weight:800;
+}
+.feedback.good{color:var(--correct)}
+.feedback.bad{color:var(--incorrect)}
+.hint-panel{
+position:relative;
+padding:14px 16px 14px 18px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.12);
+border-left:4px solid var(--accent1);
+transform-origin:top;
+animation:hintIn calc(.3s * var(--motion)) ease-out;
+}
+@keyframes hintIn{
+from{opacity:0;transform:translateY(-8px)}
+to{opacity:1;transform:translateY(0)}
+}
+.hint-head{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:12px;
+margin-bottom:8px;
+}
+.hint-title{
+font-weight:900;
+}
+.hint-close{
+padding:8px 10px;
+min-height:40px;
+background:rgba(255,255,255,.08);
+box-shadow:none;
+}
+.controls{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+}
+.secondary{
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.14);
+box-shadow:none;
+}
+.modal-backdrop{
+position:fixed;inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:20px;
+background:rgba(0,0,0,.72);
+z-index:120;
+opacity:0;
+pointer-events:none;
+transition:opacity calc(.25s * var(--motion)) ease;
+}
+.modal-backdrop.show{
+opacity:1;
+pointer-events:auto;
+}
+.modal{
+width:min(720px,96vw);
+max-height:88vh;
+overflow:auto;
+background:var(--glass-strong);
+border:1px solid rgba(255,255,255,.15);
+border-radius:24px;
+padding:24px;
+box-shadow:var(--shadow);
+}
+.modal h3{
+margin:0 0 10px;
+font-size:1.4em;
+}
+.example-lines{
+display:grid;
+gap:10px;
+margin:14px 0 18px;
+}
+.example-line{
+padding:10px 12px;
+border-radius:14px;
+background:rgba(255,255,255,.08);
+line-height:1.45;
+}
+.example-line.hl{
+border:1px solid rgba(8,145,178,.65);
+background:rgba(8,145,178,.14);
+font-weight:900;
+}
+.input-row{
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+align-items:center;
+}
+.modal-msg{
+min-height:28px;
+font-weight:800;
+}
+.shake{
+animation:shake calc(.3s * var(--motion)) linear;
+}
+@keyframes shake{
+0%{transform:translateX(0)}
+16%{transform:translateX(-4px)}
+33%{transform:translateX(4px)}
+50%{transform:translateX(-4px)}
+66%{transform:translateX(4px)}
+100%{transform:translateX(0)}
+}
+.results-top{
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+gap:16px;
+}
+.mission-title{
+font-size:2em;
+font-weight:900;
+margin:0;
+transform:scale(.88);
+animation:elasticIn calc(.55s * var(--motion)) ease forwards;
+}
+@keyframes elasticIn{
+0%{opacity:0;transform:scale(.78)}
+60%{opacity:1;transform:scale(1.04)}
+100%{opacity:1;transform:scale(1)}
+}
+.stars{
+display:flex;
+gap:10px;
+font-size:2.3em;
+}
+.star{
+opacity:0;
+transform:translateY(10px) scale(.8);
+animation:starIn calc(.35s * var(--motion)) ease forwards;
+}
+.star:nth-child(2){animation-delay:calc(.2s * var(--motion))}
+.star:nth-child(3){animation-delay:calc(.4s * var(--motion))}
+@keyframes starIn{
+to{opacity:1;transform:translateY(0) scale(1)}
+}
+.stats-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.stat-card{
+padding:16px;
+border-radius:18px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.12);
+opacity:0;
+transform:translateY(10px);
+animation:fadeUp calc(.38s * var(--motion)) ease forwards;
+}
+.stat-card:nth-child(2){animation-delay:calc(.1s * var(--motion))}
+.stat-card:nth-child(3){animation-delay:calc(.2s * var(--motion))}
+.stat-card:nth-child(4){animation-delay:calc(.3s * var(--motion))}
+@keyframes fadeUp{
+to{opacity:1;transform:translateY(0)}
+}
+.stat-card .k{
+font-size:.72em;
+text-transform:uppercase;
+letter-spacing:.08em;
+color:var(--muted);
+margin:0 0 8px;
+}
+.stat-card .v{
+font-size:2em;
+font-weight:900;
+color:var(--accent1);
+line-height:1;
+}
+.achievement-row,.record-badge,.toast{
+padding:12px 14px;
+border-radius:16px;
+background:rgba(255,255,255,.08);
+border:1px solid rgba(255,255,255,.12);
+}
+.record-badge{
+display:inline-flex;
+align-items:center;
+gap:10px;
+font-weight:900;
+width:max-content;
+}
+.toast{
+position:fixed;
+right:18px;
+bottom:18px;
+max-width:min(380px,86vw);
+z-index:140;
+box-shadow:var(--shadow);
+}
+.fade-black{
+position:fixed;inset:0;background:#000;z-index:160;opacity:0;pointer-events:none;display:grid;place-items:center;color:#fff;font-size:1.6em;font-weight:900;transition:opacity calc(.35s * var(--motion)) ease;
+}
+.fade-black.show{opacity:1;pointer-events:auto}
+#mascot{
+position:fixed;
+bottom:16px;
+left:16px;
+z-index:110;
+transform-origin:center bottom;
+}
+#mascot .m-head{fill:var(--accent1)}
+#mascot .m-face{fill:#0c4a6e}
+#mascot .m-body,#mascot .m-arm-l,#mascot .m-arm-r,#mascot .m-leg-l,#mascot .m-leg-r{stroke:#164e63;fill:#0e7490}
+#mascot .m-body{stroke:none}
+#mascot.idle .m-body{animation:breathe calc(2s * var(--motion)) ease-in-out infinite}
+#mascot.idle .m-eyes{animation:blink calc(3.5s * var(--motion)) linear infinite}
+#mascot.celebrate{animation:jump calc(.4s * var(--motion)) ease-out infinite}
+#mascot.celebrate .m-arm-r{transform-origin:42px 60px;animation:armUp calc(.4s * var(--motion)) ease-out infinite}
+#mascot.encourage{animation:tilt calc(.6s * var(--motion)) ease-in-out 2}
+#mascot.encourage .m-arm-r{transform-origin:42px 60px;animation:wave calc(.3s * var(--motion)) ease-in-out 4}
+#mascot .eye-l-sad,#mascot .eye-r-sad,#mascot .eye-l-dot,#mascot .eye-r-dot{opacity:0}
+#mascot.encourage .eye-l-happy,#mascot.encourage .eye-r-happy{opacity:0}
+#mascot.encourage .eye-l-sad,#mascot.encourage .eye-r-sad{opacity:1}
+#mascot.celebrate .eye-l-dot,#mascot.celebrate .eye-r-dot{opacity:0}
+#mascot.celebrate .eye-l-happy,#mascot.celebrate .eye-r-happy{opacity:1}
+.speech{
+position:fixed;
+left:98px;
+bottom:96px;
+z-index:115;
+max-width:200px;
+padding:12px 14px;
+background:var(--glass-strong);
+border:1px solid rgba(255,255,255,.16);
+border-radius:18px;
+box-shadow:var(--shadow);
+}
+.speech:after{
+content:"";
+position:absolute;
+left:18px;
+bottom:-10px;
+border-width:10px 10px 0 10px;
+border-style:solid;
+border-color:var(--glass-strong) transparent transparent transparent;
+}
+@keyframes breathe{
+0%,100%{transform:scaleY(1)}
+50%{transform:scaleY(1.03)}
+}
+@keyframes blink{
+0%,94%,100%{opacity:1}
+95%,97%{opacity:.08}
+}
+@keyframes jump{
+0%{transform:translateY(0)}
+40%{transform:translateY(-12px)}
+100%{transform:translateY(0)}
+}
+@keyframes tilt{
+0%{transform:rotate(0)}
+30%{transform:rotate(12deg)}
+70%{transform:rotate(-4deg)}
+100%{transform:rotate(0)}
+}
+@keyframes wave{
+0%{transform:rotate(0)}
+50%{transform:rotate(15deg)}
+100%{transform:rotate(-15deg)}
+}
+@keyframes armUp{
+0%{transform:rotate(0)}
+50%{transform:rotate(-45deg)}
+100%{transform:rotate(0)}
+}
+@media (max-width:1024px){
+.shell{grid-template-columns:1fr;grid-template-rows:auto 1fr;height:min(94vh,980px)}
+.sidebar{flex-direction:row;flex-wrap:wrap}
+.brand,.progress-wrap,.toggles,.legend{width:100%}
+.metric-grid{width:100%}
+}
+@media (max-width:768px){
+#app{padding:10px}
+.shell{height:96vh;gap:10px}
+.start-screen,.game-screen,.results-screen,.error-screen,.sidebar{padding:16px}
+.card-row,.stats-grid,.choice-grid,.metric-grid{grid-template-columns:1fr}
+.headline{flex-direction:column}
+.stem{font-size:1.18em}
+#mascot{width:64px;height:84px}
+.speech{left:82px;bottom:82px}
+}
+@media (prefers-reduced-motion:reduce){
+:root{--motion:0}
+.parallax-bg,.parallax-bubbles,#mascot,.loader-fill,.star,.stat-card,.mission-title{animation:none !important}
+}
+</style>
+</head>
+<body>
+<div id="loadingScreen" aria-label="Loading game">
+  <div class="loader-card">
+    <h1 class="loader-title" id="loadingTitle">Loading Mission...</h1>
+    <p class="loader-sub" id="loadingSub">Preparing the submarine systems and mapping division routes.</p>
+    <div class="loader-bar" aria-hidden="true"><div class="loader-fill" id="loaderFill"></div></div>
+  </div>
+</div>
+
+<div class="parallax-bg" id="parallaxBg" aria-hidden="true"></div>
+<div class="parallax-bubbles" id="bubbleLayer" aria-hidden="true"></div>
+<canvas class="particle-canvas" id="particleCanvas" aria-hidden="true"></canvas>
+
+<svg id="mascot" class="idle" viewBox="0 0 60 100" width="80" height="100" aria-hidden="true">
+  <circle class="m-head" cx="30" cy="28" r="22"/>
+  <ellipse class="m-face" cx="30" cy="28" rx="14" ry="12"/>
+  <g class="m-eyes">
+    <path class="eye-l-happy" d="M22,27 Q24,25 26,27" stroke="white" fill="none" stroke-width="2"/>
+    <path class="eye-r-happy" d="M34,27 Q36,25 38,27" stroke="white" fill="none" stroke-width="2"/>
+    <path class="eye-l-sad" d="M22,27 Q24,29 26,27" stroke="white" fill="none" stroke-width="2"/>
+    <path class="eye-r-sad" d="M34,27 Q36,29 38,27" stroke="white" fill="none" stroke-width="2"/>
+    <circle class="eye-l-dot" cx="24" cy="27" r="3" fill="white"/>
+    <circle class="eye-r-dot" cx="36" cy="27" r="3" fill="white"/>
+  </g>
+  <rect class="m-body" x="18" y="52" width="24" height="28" rx="8"/>
+  <line class="m-arm-l" x1="18" y1="60" x2="8" y2="72" stroke-width="6" stroke-linecap="round"/>
+  <line class="m-arm-r" x1="42" y1="60" x2="52" y2="72" stroke-width="6" stroke-linecap="round"/>
+  <line class="m-leg-l" x1="24" y1="80" x2="20" y2="96" stroke-width="6" stroke-linecap="round"/>
+  <line class="m-leg-r" x1="36" y1="80" x2="40" y2="96" stroke-width="6" stroke-linecap="round"/>
+</svg>
+
+<div id="speech" class="speech hidden" role="status" aria-live="polite"></div>
+
+<div id="app">
+  <div class="shell">
+    <aside class="panel sidebar">
+      <div class="brand">
+        <div class="brand-badge">÷</div>
+        <div class="brand-text">
+          <h1 id="gameTitle">Ocean Depth Division Rescue</h1>
+          <p id="gameStd">6.NS.B.2</p>
+        </div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric">
+          <p class="metric-label" id="scoreLabel">Score</p>
+          <div class="metric-value" id="scoreVal" aria-live="polite">0</div>
+        </div>
+        <div class="metric">
+          <p class="metric-label" id="streakLabel">Streak</p>
+          <div class="metric-value" id="streakVal" aria-live="polite">0</div>
+        </div>
+        <div class="metric">
+          <p class="metric-label" id="xpLabel">XP</p>
+          <div class="metric-value" id="xpVal" aria-live="polite">0</div>
+        </div>
+        <div class="metric">
+          <p class="metric-label" id="tierLabel">Tier</p>
+          <div class="metric-value" id="tierVal" aria-live="polite">1</div>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px">
+          <strong id="progressLabel">Progress</strong>
+          <span id="progressText" aria-live="polite">0 / 15</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="toggles">
+        <button class="toggle-btn" id="audioBtn" aria-label="Toggle audio">🔇 Audio: Off</button>
+        <button class="toggle-btn" id="contrastBtn" aria-label="Toggle high contrast">◐ High Contrast: Off</button>
+        <button class="toggle-btn" id="motionBtn" aria-label="Toggle reduced motion">⇄ Reduced Motion: Off</button>
+        <button class="toggle-btn" id="textBtn" aria-label="Adjust text size">A+ Text Size</button>
+      </div>
+
+      <div class="legend">
+        <div class="metric">
+          <p class="metric-label">Mission</p>
+          <p style="margin:0;color:var(--muted);line-height:1.45">Repair ocean sensors by solving multi-digit division. Use quotient estimates, long-division steps, and careful checking.</p>
+        </div>
+      </div>
+    </aside>
+
+    <main class="panel main">
+      <section class="start-screen" id="startScreen">
+        <div class="headline">
+          <div>
+            <h2>Submarine Sensor Rescue</h2>
+            <p class="subtitle">Guide your submarine through 3 ocean zones. You will start in Tier 1, earn help after mistakes, and move up when your streak proves you are ready.</p>
+          </div>
+        </div>
+        <div class="card-row">
+          <div class="info-card">
+            <h3>How to Win</h3>
+            <p>Earn up to 3 stars through strong first-try accuracy. The session ends when you earn 3 stars or attempt 15 problems.</p>
+          </div>
+          <div class="info-card">
+            <h3>Support System</h3>
+            <p>After 1 mistake, you get a conceptual hint. After 2 mistakes, you get a step-by-step hint. After 3 mistakes, you work the last step of an example.</p>
+          </div>
+          <div class="info-card">
+            <h3>Controls</h3>
+            <p>Use mouse, touch, or keyboard. Tab moves focus. Arrow keys move choices. Enter or Space selects a choice.</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="startBtn" aria-label="Start Mission">Start Mission</button>
+          <button class="secondary" id="startHowBtn" aria-label="Show more mission directions">Mission Guide</button>
+        </div>
+      </section>
+
+      <section class="game-screen hidden" id="gameScreen">
+        <div class="stage">
+          <div class="question-card">
+            <div class="headline">
+              <div>
+                <h2 id="zoneTitle">Tier 1 · Shallow Reef</h2>
+                <p class="subtitle" id="zoneSub">Build strong long-division habits.</p>
+              </div>
+            </div>
+            <p class="stem" id="stemText"></p>
+            <div class="visual hidden" id="visualWrap"></div>
+          </div>
+
+          <div id="hintMount"></div>
+
+          <div class="feedback" id="feedback" aria-live="polite"></div>
+
+          <div class="choice-grid" id="choiceGrid" role="listbox" aria-label="Answer choices"></div>
+
+          <div class="controls">
+            <button class="secondary hidden" id="nextBtn" aria-label="Next problem">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="results-screen hidden" id="resultsScreen"></section>
+
+      <section class="error-screen hidden" id="errorScreen">
+        <h2>Oops! Game couldn't load. Try refreshing.</h2>
+        <p class="subtitle">A mission system failed to start.</p>
+        <div class="controls"><button id="refreshBtn">Refresh</button></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="guideModalWrap" aria-hidden="true">
+  <div class="modal">
+    <h3>Mission Guide</h3>
+    <div class="example-lines">
+      <div class="example-line">Use quotient estimates to decide how many times the divisor fits into the leading digits.</div>
+      <div class="example-line">Multiply to check the partial quotient.</div>
+      <div class="example-line">Subtract, bring down, and continue until the quotient is complete.</div>
+      <div class="example-line">Stay calm if you miss a problem. The game will coach you forward.</div>
+    </div>
+    <div class="controls"><button id="closeGuideBtn">Back</button></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="workedModalWrap" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="workedTitle">
+    <h3 id="workedTitle">Let's work through this together:</h3>
+    <div id="workedBody" class="example-lines"></div>
+    <div class="input-row">
+      <label for="workedInput" class="sr-only">Type the final answer</label>
+      <input id="workedInput" inputmode="decimal" aria-label="Type the final answer">
+      <button id="workedSubmitBtn" aria-label="Submit worked example final answer">I got it!</button>
+    </div>
+    <div class="modal-msg" id="workedMsg" aria-live="polite"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<div id="fadeBlack" class="fade-black">Thanks for playing!</div>
+
+<script type="application/json" id="game-config">
+{
+  "schemaVersion": "4.0",
+  "standard": "6.NS.B.2",
+  "standardDescription": "Fluently divide multi-digit numbers using the standard algorithm.",
+  "title": "Ocean Depth Division Rescue",
+  "theme": "ocean-depths",
+  "concepts": ["estimate-quotient","standard-algorithm-division"],
+  "problems": [
+    {
+      "id":"p001",
+      "tier":1,
+      "concept":"estimate-quotient",
+      "stem":"A submarine collected 96 shells and packs them equally into 4 sample trays. How many shells go in each tray?",
+      "visual":{"type":"table","data":{"headers":["Total Shells","Trays"],"rows":[["96","4"]]}},
+      "choices":[
+        {"value":"24","correct":true,"misconception":null},
+        {"value":"20","correct":false,"misconception":"ignored-ones"},
+        {"value":"25","correct":false,"misconception":"divisor-plus-extra"},
+        {"value":"28","correct":false,"misconception":"multiplied-instead-of-divided"}
+      ],
+      "hints":{
+        "conceptual":"Division tells how many equal groups or how many are in each equal group.",
+        "procedural":"Step 1: Ask how many times 4 fits into 9 tens. Step 2: Write 2 tens. Step 3: Divide the remaining 16 ones by 4."
+      },
+      "workedExample":"96 ÷ 4.\n4 goes into 9 tens 2 times.\n2 × 4 = 8 tens.\n9 tens - 8 tens = 1 ten.\nBring down 6 ones to make 16.\n16 ÷ 4 = ___.",
+      "workedExampleAnswer":"4"
+    },
+    {
+      "id":"p002",
+      "tier":1,
+      "concept":"estimate-quotient",
+      "stem":"The sub moves 84 meters in 4 equal bursts. How many meters are in each burst?",
+      "visual":{"type":"number-line","data":{"min":0,"max":84,"step":21,"markers":[{"value":21,"label":"1 burst"},{"value":42,"label":"2 bursts"},{"value":63,"label":"3 bursts"},{"value":84,"label":"4 bursts"}]}},
+      "choices":[
+        {"value":"21","correct":true,"misconception":null},
+        {"value":"18","correct":false,"misconception":"used-nearby-fact"},
+        {"value":"20","correct":false,"misconception":"rounded-quotient"},
+        {"value":"24","correct":false,"misconception":"swapped-factors"}
+      ],
+      "hints":{
+        "conceptual":"Think of division as sharing the total distance equally across all bursts.",
+        "procedural":"Step 1: 8 tens ÷ 4 = 2 tens. Step 2: Bring the 4 ones down. Step 3: 4 ÷ 4 = 1."
+      },
+      "workedExample":"84 ÷ 4.\n4 goes into 8 tens 2 times.\n2 × 4 = 8 tens.\nSubtract to get 0 tens.\nBring down 4.\n4 ÷ 4 = ___.",
+      "workedExampleAnswer":"1"
+    },
+    {
+      "id":"p003",
+      "tier":1,
+      "concept":"estimate-quotient",
+      "stem":"A camera stores 72 photos equally on 6 memory chips. How many photos go on each chip?",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"12","correct":true,"misconception":null},
+        {"value":"10","correct":false,"misconception":"stopped-after-first-step"},
+        {"value":"14","correct":false,"misconception":"added-instead-of-divided"},
+        {"value":"18","correct":false,"misconception":"fact-family-confusion"}
+      ],
+      "hints":{
+        "conceptual":"Use a multiplication fact to test the quotient: 6 × quotient = 72.",
+        "procedural":"Step 1: Ask how many times 6 fits into 7 tens. Step 2: Multiply and subtract. Step 3: Bring down the 2 ones."
+      },
+      "workedExample":"72 ÷ 6.\n6 goes into 7 tens 1 time.\n1 × 6 = 6 tens.\n7 tens - 6 tens = 1 ten.\nBring down 2 to make 12.\n12 ÷ 6 = ___.",
+      "workedExampleAnswer":"2"
+    },
+    {
+      "id":"p004",
+      "tier":1,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 144 ÷ 6.",
+      "visual":{"type":"table","data":{"headers":["Dividend","Divisor"],"rows":[["144","6"]]}},
+      "choices":[
+        {"value":"24","correct":true,"misconception":null},
+        {"value":"22","correct":false,"misconception":"subtracted-wrong-remainder"},
+        {"value":"26","correct":false,"misconception":"added-digits-of-quotient"},
+        {"value":"18","correct":false,"misconception":"divided-first-two-digits-only"}
+      ],
+      "hints":{
+        "conceptual":"The standard algorithm finds one place value of the quotient at a time.",
+        "procedural":"Step 1: 14 tens ÷ 6 = 2 tens. Step 2: Multiply 2 × 6 = 12 tens and subtract. Step 3: Bring down 4 and divide 24 by 6."
+      },
+      "workedExample":"144 ÷ 6.\n6 goes into 14 tens 2 times.\n2 × 6 = 12 tens.\n14 tens - 12 tens = 2 tens.\nBring down 4 to make 24.\n24 ÷ 6 = ___.",
+      "workedExampleAnswer":"4"
+    },
+    {
+      "id":"p005",
+      "tier":1,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 168 ÷ 4.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"42","correct":true,"misconception":null},
+        {"value":"48","correct":false,"misconception":"quotient-digit-reversal"},
+        {"value":"38","correct":false,"misconception":"multiplied-first-digit-only"},
+        {"value":"40","correct":false,"misconception":"ignored-final-remainder-step"}
+      ],
+      "hints":{
+        "conceptual":"Each quotient digit shows how many groups fit into the current place-value chunk.",
+        "procedural":"Step 1: 16 tens ÷ 4 = 4 tens. Step 2: Subtract 16 tens. Step 3: Bring down 8 and divide 8 by 4."
+      },
+      "workedExample":"168 ÷ 4.\n4 goes into 16 tens 4 times.\n4 × 4 = 16 tens.\nSubtract to get 0 tens.\nBring down 8.\n8 ÷ 4 = ___.",
+      "workedExampleAnswer":"2"
+    },
+    {
+      "id":"p006",
+      "tier":1,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 225 ÷ 5.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"45","correct":true,"misconception":null},
+        {"value":"44","correct":false,"misconception":"one-less-quotient"},
+        {"value":"50","correct":false,"misconception":"stopped-after-first-digit"},
+        {"value":"40","correct":false,"misconception":"ignored-last-digit"}
+      ],
+      "hints":{
+        "conceptual":"A correct quotient makes the multiplication check true: quotient × divisor = dividend.",
+        "procedural":"Step 1: 22 tens ÷ 5 = 4 tens. Step 2: Multiply 4 × 5 = 20 tens and subtract. Step 3: Bring down 5 and divide 25 by 5."
+      },
+      "workedExample":"225 ÷ 5.\n5 goes into 22 tens 4 times.\n4 × 5 = 20 tens.\n22 tens - 20 tens = 2 tens.\nBring down 5 to make 25.\n25 ÷ 5 = ___.",
+      "workedExampleAnswer":"5"
+    },
+    {
+      "id":"p007",
+      "tier":2,
+      "concept":"estimate-quotient",
+      "stem":"A deep-sea drone sends 315 images equally over 9 minutes. How many images per minute?",
+      "visual":{"type":"table","data":{"headers":["Images","Minutes"],"rows":[["315","9"]]}},
+      "choices":[
+        {"value":"35","correct":true,"misconception":null},
+        {"value":"30","correct":false,"misconception":"ignored-final-division"},
+        {"value":"34","correct":false,"misconception":"subtracted-wrong"},
+        {"value":"45","correct":false,"misconception":"used-incorrect-multiplication-fact"}
+      ],
+      "hints":{
+        "conceptual":"Estimate first: 315 ÷ 9 should be a little more than 27 and less than 45, so 35 is reasonable.",
+        "procedural":"Step 1: 31 tens ÷ 9 = 3 tens. Step 2: Multiply and subtract to get 4 tens? Check carefully. Step 3: Bring down the 5 and divide the new number by 9."
+      },
+      "workedExample":"315 ÷ 9.\n9 goes into 31 tens 3 times.\n3 × 9 = 27 tens.\n31 tens - 27 tens = 4 tens.\nBring down 5 to make 45.\n45 ÷ 9 = ___.",
+      "workedExampleAnswer":"5"
+    },
+    {
+      "id":"p008",
+      "tier":2,
+      "concept":"estimate-quotient",
+      "stem":"A research team stores 432 data points in 6 equal folders. How many data points per folder?",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"72","correct":true,"misconception":null},
+        {"value":"62","correct":false,"misconception":"did-not-bring-down-correctly"},
+        {"value":"70","correct":false,"misconception":"rounded-quotient"},
+        {"value":"78","correct":false,"misconception":"used-product-nearby"}
+      ],
+      "hints":{
+        "conceptual":"The quotient must make sense with place value: hundreds first, then tens, then ones.",
+        "procedural":"Step 1: 43 tens ÷ 6 = 7 tens. Step 2: Multiply 7 × 6 = 42 tens and subtract. Step 3: Bring down 2 and divide 12 by 6."
+      },
+      "workedExample":"432 ÷ 6.\n6 goes into 43 tens 7 times.\n7 × 6 = 42 tens.\n43 tens - 42 tens = 1 ten.\nBring down 2 to make 12.\n12 ÷ 6 = ___.",
+      "workedExampleAnswer":"2"
+    },
+    {
+      "id":"p009",
+      "tier":2,
+      "concept":"estimate-quotient",
+      "stem":"A sonar battery has 196 units of power for 7 equal shifts. How many units per shift?",
+      "visual":{"type":"graph","data":{"xLabel":"Shift","yLabel":"Power Used if Equal","points":[[1,28],[2,56],[3,84],[4,112],[5,140],[6,168],[7,196]],"highlightPoint":[7,196]}},
+      "choices":[
+        {"value":"28","correct":true,"misconception":null},
+        {"value":"24","correct":false,"misconception":"used-lower-fact"},
+        {"value":"26","correct":false,"misconception":"subtraction-error"},
+        {"value":"21","correct":false,"misconception":"divided-first-two-digits-only"}
+      ],
+      "hints":{
+        "conceptual":"Use a nearby multiplication fact to estimate the quotient before dividing.",
+        "procedural":"Step 1: 19 tens ÷ 7 = 2 tens. Step 2: 2 × 7 = 14 tens. Step 3: Subtract, bring down 6, and divide 56 by 7."
+      },
+      "workedExample":"196 ÷ 7.\n7 goes into 19 tens 2 times.\n2 × 7 = 14 tens.\n19 tens - 14 tens = 5 tens.\nBring down 6 to make 56.\n56 ÷ 7 = ___.",
+      "workedExampleAnswer":"8"
+    },
+    {
+      "id":"p010",
+      "tier":2,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 1,248 ÷ 6.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"208","correct":true,"misconception":null},
+        {"value":"218","correct":false,"misconception":"addition-in-quotient"},
+        {"value":"206","correct":false,"misconception":"missed-last-step"},
+        {"value":"198","correct":false,"misconception":"used-nearby-fact"}
+      ],
+      "hints":{
+        "conceptual":"A four-digit dividend may create a three-digit quotient. Work one place at a time.",
+        "procedural":"Step 1: 12 hundreds ÷ 6 = 2 hundreds. Step 2: Bring down 4 tens; 4 tens ÷ 6 = 0 tens, so write 0. Step 3: Bring down 8 ones and divide 48 by 6."
+      },
+      "workedExample":"1,248 ÷ 6.\n6 goes into 12 hundreds 2 times.\nSubtract to get 0 hundreds.\nBring down 4 tens.\n4 tens ÷ 6 = 0 tens, so write 0.\nBring down 8 ones to make 48.\n48 ÷ 6 = ___.",
+      "workedExampleAnswer":"8"
+    },
+    {
+      "id":"p011",
+      "tier":2,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 1,356 ÷ 4.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"339","correct":true,"misconception":null},
+        {"value":"334","correct":false,"misconception":"subtraction-error"},
+        {"value":"309","correct":false,"misconception":"inserted-zero-wrongly"},
+        {"value":"348","correct":false,"misconception":"used-product-nearby"}
+      ],
+      "hints":{
+        "conceptual":"Check each step by multiplying the quotient digit by the divisor before subtracting.",
+        "procedural":"Step 1: 13 hundreds ÷ 4 = 3 hundreds. Step 2: Subtract 12 hundreds and bring down 5 tens. Step 3: Divide 15 by 4, then bring down 6 and finish."
+      },
+      "workedExample":"1,356 ÷ 4.\n4 goes into 13 hundreds 3 times.\n3 × 4 = 12 hundreds.\n13 hundreds - 12 hundreds = 1 hundred.\nBring down 5 tens to make 15 tens.\n15 ÷ 4 = 3 with remainder 3.\nBring down 6 to make 36.\n36 ÷ 4 = ___.",
+      "workedExampleAnswer":"9"
+    },
+    {
+      "id":"p012",
+      "tier":2,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 1,872 ÷ 9.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"208","correct":true,"misconception":null},
+        {"value":"198","correct":false,"misconception":"used-incorrect-estimate"},
+        {"value":"218","correct":false,"misconception":"added-remainder-to-quotient"},
+        {"value":"212","correct":false,"misconception":"subtraction-error"}
+      ],
+      "hints":{
+        "conceptual":"A zero in the middle of a quotient is important when the divisor does not fit into the current place-value chunk.",
+        "procedural":"Step 1: 18 hundreds ÷ 9 = 2 hundreds. Step 2: Bring down 7 tens; 7 tens ÷ 9 = 0 tens, so write 0. Step 3: Bring down 2 ones to make 72 and divide by 9."
+      },
+      "workedExample":"1,872 ÷ 9.\n9 goes into 18 hundreds 2 times.\nSubtract to get 0 hundreds.\nBring down 7 tens.\n7 tens ÷ 9 = 0 tens, so write 0.\nBring down 2 ones to make 72.\n72 ÷ 9 = ___.",
+      "workedExampleAnswer":"8"
+    },
+    {
+      "id":"p013",
+      "tier":3,
+      "concept":"estimate-quotient",
+      "stem":"A trench map uses 2,184 meters of cable split equally across 7 sensor lines. How many meters of cable go on each line?",
+      "visual":{"type":"table","data":{"headers":["Cable (m)","Sensor Lines"],"rows":[["2,184","7"]]}},
+      "choices":[
+        {"value":"312","correct":true,"misconception":null},
+        {"value":"318","correct":false,"misconception":"subtraction-error"},
+        {"value":"302","correct":false,"misconception":"missed-middle-digit"},
+        {"value":"296","correct":false,"misconception":"used-low-estimate"}
+      ],
+      "hints":{
+        "conceptual":"Estimate 2,184 ÷ 7 by thinking 2,100 ÷ 7 = 300, so the quotient should be a little more than 300.",
+        "procedural":"Step 1: 21 hundreds ÷ 7 = 3 hundreds. Step 2: Bring down 8 tens; 8 tens ÷ 7 = 1 ten. Step 3: Bring down 4 ones to make 14 and finish."
+      },
+      "workedExample":"2,184 ÷ 7.\n7 goes into 21 hundreds 3 times.\nSubtract to get 0 hundreds.\nBring down 8 tens.\n8 tens ÷ 7 = 1 ten.\n1 × 7 = 7 tens.\n8 tens - 7 tens = 1 ten.\nBring down 4 to make 14.\n14 ÷ 7 = ___.",
+      "workedExampleAnswer":"2"
+    },
+    {
+      "id":"p014",
+      "tier":3,
+      "concept":"estimate-quotient",
+      "stem":"The submarine stores 2,520 oxygen units in 8 equal tanks. How many units go in each tank?",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"315","correct":true,"misconception":null},
+        {"value":"320","correct":false,"misconception":"rounded-quotient"},
+        {"value":"305","correct":false,"misconception":"ignored-last-step"},
+        {"value":"225","correct":false,"misconception":"digit-reversal"}
+      ],
+      "hints":{
+        "conceptual":"Estimate 2,400 ÷ 8 = 300, so your answer should be just above 300.",
+        "procedural":"Step 1: 25 hundreds ÷ 8 = 3 hundreds. Step 2: Subtract 24 hundreds and bring down 2 tens. Step 3: Continue with 12 tens ÷ 8, then bring down 0."
+      },
+      "workedExample":"2,520 ÷ 8.\n8 goes into 25 hundreds 3 times.\n3 × 8 = 24 hundreds.\n25 hundreds - 24 hundreds = 1 hundred.\nBring down 2 tens to make 12 tens.\n12 ÷ 8 = 1.\n1 × 8 = 8.\n12 - 8 = 4.\nBring down 0 to make 40.\n40 ÷ 8 = ___.",
+      "workedExampleAnswer":"5"
+    },
+    {
+      "id":"p015",
+      "tier":3,
+      "concept":"estimate-quotient",
+      "stem":"A rescue beacon sends 1,764 signals equally over 6 cycles. How many signals per cycle?",
+      "visual":{"type":"graph","data":{"xLabel":"Cycles","yLabel":"Signals if Equal","points":[[1,294],[2,588],[3,882],[4,1176],[5,1470],[6,1764]],"highlightPoint":[6,1764]}},
+      "choices":[
+        {"value":"294","correct":true,"misconception":null},
+        {"value":"284","correct":false,"misconception":"subtraction-error"},
+        {"value":"296","correct":false,"misconception":"used-nearby-product"},
+        {"value":"304","correct":false,"misconception":"added-remainder-to-quotient"}
+      ],
+      "hints":{
+        "conceptual":"Estimate 1,800 ÷ 6 = 300, so the exact answer should be close to 300.",
+        "procedural":"Step 1: 17 hundreds ÷ 6 = 2 hundreds. Step 2: Bring down 6 tens to make 56 tens. Step 3: Divide 56 by 6, then bring down 4 and finish."
+      },
+      "workedExample":"1,764 ÷ 6.\n6 goes into 17 hundreds 2 times.\n2 × 6 = 12 hundreds.\n17 hundreds - 12 hundreds = 5 hundreds.\nBring down 6 tens to make 56 tens.\n56 ÷ 6 = 9 with remainder 2.\nBring down 4 to make 24.\n24 ÷ 6 = ___.",
+      "workedExampleAnswer":"4"
+    },
+    {
+      "id":"p016",
+      "tier":3,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 2,448 ÷ 6.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"408","correct":true,"misconception":null},
+        {"value":"418","correct":false,"misconception":"inserted-one-extra"},
+        {"value":"404","correct":false,"misconception":"missed-final-step"},
+        {"value":"388","correct":false,"misconception":"used-low-fact"}
+      ],
+      "hints":{
+        "conceptual":"Zeros in the quotient keep place value correct. Never skip a place.",
+        "procedural":"Step 1: 24 hundreds ÷ 6 = 4 hundreds. Step 2: Bring down 4 tens; 4 tens ÷ 6 = 0 tens, so write 0. Step 3: Bring down 8 ones and divide 48 by 6."
+      },
+      "workedExample":"2,448 ÷ 6.\n6 goes into 24 hundreds 4 times.\nSubtract to get 0 hundreds.\nBring down 4 tens.\n4 tens ÷ 6 = 0 tens, so write 0.\nBring down 8 to make 48.\n48 ÷ 6 = ___.",
+      "workedExampleAnswer":"8"
+    },
+    {
+      "id":"p017",
+      "tier":3,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 3,024 ÷ 7.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"432","correct":true,"misconception":null},
+        {"value":"422","correct":false,"misconception":"missed-middle-step"},
+        {"value":"438","correct":false,"misconception":"used-nearby-product"},
+        {"value":"404","correct":false,"misconception":"dropped-quotient-digit"}
+      ],
+      "hints":{
+        "conceptual":"After subtracting, bring down exactly one digit at a time and keep the quotient aligned.",
+        "procedural":"Step 1: 30 hundreds ÷ 7 = 4 hundreds. Step 2: Subtract 28 hundreds and bring down 2 tens to make 22 tens. Step 3: Continue with 22 ÷ 7, then bring down 4."
+      },
+      "workedExample":"3,024 ÷ 7.\n7 goes into 30 hundreds 4 times.\n4 × 7 = 28 hundreds.\n30 hundreds - 28 hundreds = 2 hundreds.\nBring down 2 tens to make 22 tens.\n22 ÷ 7 = 3.\n3 × 7 = 21.\n22 - 21 = 1.\nBring down 4 to make 14.\n14 ÷ 7 = ___.",
+      "workedExampleAnswer":"2"
+    },
+    {
+      "id":"p018",
+      "tier":3,
+      "concept":"standard-algorithm-division",
+      "stem":"Solve 2,835 ÷ 9.",
+      "visual":{"type":"none","data":{}},
+      "choices":[
+        {"value":"315","correct":true,"misconception":null},
+        {"value":"305","correct":false,"misconception":"ignored-middle-digit"},
+        {"value":"325","correct":false,"misconception":"subtraction-error"},
+        {"value":"345","correct":false,"misconception":"used-incorrect-estimate"}
+      ],
+      "hints":{
+        "conceptual":"Check the quotient by multiplying 315 × 9 to see if it returns to 2,835.",
+        "procedural":"Step 1: 28 hundreds ÷ 9 = 3 hundreds. Step 2: Bring down 3 tens to make 13 tens. Step 3: Divide 13 by 9, then bring down 5 and finish."
+      },
+      "workedExample":"2,835 ÷ 9.\n9 goes into 28 hundreds 3 times.\n3 × 9 = 27 hundreds.\n28 hundreds - 27 hundreds = 1 hundred.\nBring down 3 tens to make 13 tens.\n13 ÷ 9 = 1.\n1 × 9 = 9.\n13 - 9 = 4.\nBring down 5 to make 45.\n45 ÷ 9 = ___.",
+      "workedExampleAnswer":"5"
+    }
+  ],
+  "misconceptionDefinitions": {
+    "ignored-ones": "Student divided only the tens and forgot the ones.",
+    "divisor-plus-extra": "Student used an addition-based guess instead of dividing equally.",
+    "multiplied-instead-of-divided": "Student multiplied the numbers instead of dividing.",
+    "used-nearby-fact": "Student selected a nearby multiplication fact that was not exact.",
+    "rounded-quotient": "Student estimated but did not return to compute exactly.",
+    "swapped-factors": "Student used a related multiplication fact in the wrong direction.",
+    "stopped-after-first-step": "Student stopped after the first quotient digit and did not finish.",
+    "added-instead-of-divided": "Student added quantities instead of dividing into equal groups.",
+    "fact-family-confusion": "Student mixed up related multiplication and division facts.",
+    "subtracted-wrong-remainder": "Student subtracted incorrectly during the algorithm.",
+    "added-digits-of-quotient": "Student treated quotient digits as a sum instead of place-value digits.",
+    "divided-first-two-digits-only": "Student divided the first part but did not continue the algorithm.",
+    "quotient-digit-reversal": "Student reversed or misplaced quotient digits.",
+    "multiplied-first-digit-only": "Student used one digit correctly, then lost place value.",
+    "ignored-final-remainder-step": "Student did not complete the final division step.",
+    "one-less-quotient": "Student used a nearly correct quotient but was one too small.",
+    "ignored-last-digit": "Student ignored the final digit of the dividend.",
+    "subtraction-error": "Student made an error while subtracting in the algorithm.",
+    "did-not-bring-down-correctly": "Student brought down the wrong digit or place value.",
+    "inserted-zero-wrongly": "Student added a zero to the quotient in the wrong place.",
+    "addition-in-quotient": "Student added value into the quotient instead of preserving place value.",
+    "used-low-estimate": "Student chose a quotient that was too low after estimating.",
+    "used-incorrect-estimate": "Student started with an inaccurate estimate and kept it.",
+    "added-remainder-to-quotient": "Student added the remainder to the quotient as if it were another quotient digit.",
+    "missed-last-step": "Student finished most of the algorithm but missed the final step.",
+    "missed-middle-digit": "Student skipped a middle quotient digit needed for place value.",
+    "inserted-one-extra": "Student added an unnecessary 1 during the quotient steps.",
+    "dropped-quotient-digit": "Student left out a quotient digit during the process.",
+    "digit-reversal": "Student reversed digits in the quotient."
+  },
+  "ui": {
+    "startButton": "Start Mission",
+    "nextButton": "Next",
+    "submitButton": "Submit",
+    "hintButton": "Get Hint",
+    "streakLabel": "Streak",
+    "scoreLabel": "Score",
+    "progressLabel": "Progress",
+    "correctFeedback": "Correct!",
+    "incorrectFeedback": "Not quite. Try again!",
+    "workedExampleIntro": "Let's work through this together:",
+    "workedExampleSubmit": "I got it!",
+    "completionMessage": "Mission Complete!",
+    "encouragementAfterReset": "Great effort! Keep going!",
+    "encouragementNearMiss": "Great effort! Play again to reach 3 stars.",
+    "playAgain": "Play Again",
+    "exit": "Exit",
+    "newRecord": "NEW RECORD",
+    "loadingMessage": "Loading Mission...",
+    "errorMessage": "Oops! Game couldn't load. Try refreshing.",
+    "offlineMessage": "You're offline. Progress will save when connected.",
+    "reducedMotion": "Reduced Motion"
+  }
+}
+</script>
+
+<script>
+const HUB_URL='https://your-hub-url.com';
+const GAME_VERSION='5.0';
+const storage={
+  _memory:{},
+  set(key,value){
+    try{localStorage.setItem(key,JSON.stringify(value))}
+    catch(e){this._memory[key]=value}
+  },
+  get(key,def=null){
+    try{
+      const v=localStorage.getItem(key);
+      return v?JSON.parse(v):def
+    }catch(e){return Object.prototype.hasOwnProperty.call(this._memory,key)?this._memory[key]:def}
+  },
+  del(key){
+    try{localStorage.removeItem(key)}
+    catch(e){delete this._memory[key]}
+  }
+};
+
+let cfg,st,audioCtx=null,perfTier=1,reduceMotion=false,choiceFocus=0,workedWrongSame=0,lastWorkedValue='',speechTimer=0,toastTimer=0,lockTimer=0;
+const el={};
+['loadingScreen','loaderFill','app','parallaxBg','bubbleLayer','particleCanvas','mascot','speech','gameTitle','gameStd','scoreVal','streakVal','xpVal','tierVal','progressText','progressFill','audioBtn','contrastBtn','motionBtn','textBtn','startScreen','gameScreen','resultsScreen','errorScreen','refreshBtn','startBtn','startHowBtn','zoneTitle','zoneSub','stemText','visualWrap','hintMount','feedback','choiceGrid','nextBtn','guideModalWrap','closeGuideBtn','workedModalWrap','workedTitle','workedBody','workedInput','workedSubmitBtn','workedMsg','toast','fadeBlack','scoreLabel','streakLabel','progressLabel'].forEach(id=>el[id]=document.getElementById(id));
+
+function init(){
+  try{
+    cfg=JSON.parse(document.getElementById('game-config').textContent);
+    if(!cfg||!cfg.problems||!cfg.ui)throw new Error('cfg');
+    hydrateUi();
+    initSettings();
+    initBubbles();
+    initCanvas();
+    initEvents();
+    startLoader();
+  }catch(err){
+    console.error(err);
+    showError();
+  }
+}
+function hydrateUi(){
+  document.title=cfg.title;
+  el.gameTitle.textContent=cfg.title;
+  el.gameStd.textContent=cfg.standard;
+  el.loadingTitle.textContent=cfg.ui.loadingMessage;
+  el.scoreLabel.textContent=cfg.ui.scoreLabel;
+  el.streakLabel.textContent=cfg.ui.streakLabel;
+  el.progressLabel.textContent=cfg.ui.progressLabel;
+  el.startBtn.textContent=cfg.ui.startButton;
+  el.nextBtn.textContent=cfg.ui.nextButton;
+  el.workedTitle.textContent=cfg.ui.workedExampleIntro;
+  el.workedSubmitBtn.textContent=cfg.ui.workedExampleSubmit;
+}
+function initSettings(){
+  st={
+    problemPools:{1:[],2:[],3:[]},
+    queue:{1:[],2:[],3:[]},
+    current:null,
+    currentTier:1,
+    streak:0,
+    score:0,
+    xp:0,
+    attempts:0,
+    solved:0,
+    correctTotal:0,
+    firstTryCorrect:0,
+    consecTierCorrect:0,
+    consecErrors:0,
+    personalBest:storage.get('ewl_personalBest',0),
+    achievements:[],
+    unlocked:new Set(storage.get('ewl_achievements',[])),
+    settings:{
+      audio:storage.get('ewl_audio',false),
+      contrast:storage.get('ewl_contrast',false),
+      reducedMotion:storage.get('ewl_reducedMotion',window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+      fontIndex:storage.get('ewl_fontIndex',0)
+    },
+    perf:{frameDeltas:[],measured:false},
+    answerLocked:false,
+    currentAttemptCount:0,
+    lastProblemFirstTry:false,
+    usedIds:new Set(),
+    comebackTracker:0,
+    startedAt:0,
+    sessionTimestamp:Date.now()
+  };
+  cfg.problems.forEach(p=>st.problemPools[p.tier].push({...p}));
+  refillQueues();
+  applySettings();
+}
+function refillQueues(){
+  [1,2,3].forEach(t=>{
+    st.queue[t]=shuffle(st.problemPools[t].map(p=>({...p})));
+  });
+}
+function initEvents(){
+  el.refreshBtn.onclick=()=>location.reload();
+  el.startBtn.onclick=beginGame;
+  el.startHowBtn.onclick=()=>toggleModal(el.guideModalWrap,true);
+  el.closeGuideBtn.onclick=()=>toggleModal(el.guideModalWrap,false);
+  el.audioBtn.onclick=()=>{
+    st.settings.audio=!st.settings.audio;
+    storage.set('ewl_audio',st.settings.audio);
+    ensureAudioOnGesture();
+    applySettings();
+  };
+  el.contrastBtn.onclick=()=>{
+    st.settings.contrast=!st.settings.contrast;
+    storage.set('ewl_contrast',st.settings.contrast);
+    applySettings();
+  };
+  el.motionBtn.onclick=()=>{
+    st.settings.reducedMotion=!st.settings.reducedMotion;
+    storage.set('ewl_reducedMotion',st.settings.reducedMotion);
+    applySettings();
+  };
+  el.textBtn.onclick=()=>{
+    st.settings.fontIndex=(st.settings.fontIndex+1)%3;
+    storage.set('ewl_fontIndex',st.settings.fontIndex);
+    applySettings();
+  };
+  el.nextBtn.onclick=()=>{
+    el.nextBtn.classList.add('hidden');
+    nextProblem();
+  };
+  el.workedSubmitBtn.onclick=submitWorkedExample;
+  el.workedInput.addEventListener('keydown',e=>{
+    if(e.key==='Enter')submitWorkedExample();
+  });
+  document.addEventListener('keydown',globalKeys);
+  ['pointerdown','touchstart'].forEach(evt=>document.addEventListener(evt,ensureAudioOnGesture,{passive:true}));
+  document.addEventListener('keydown',e=>{
+    if(['Enter',' ','ArrowUp','ArrowDown'].includes(e.key))ensureAudioOnGesture();
+  });
+  window.addEventListener('online',()=>hideToast());
+  window.addEventListener('offline',()=>showToast(cfg.ui.offlineMessage));
+}
+function applySettings(){
+  document.body.classList.toggle('high-contrast',!!st.settings.contrast);
+  reduceMotion=!!st.settings.reducedMotion;
+  document.documentElement.style.setProperty('--motion',reduceMotion?'0':'1');
+  const sizes=['20px','22px','24px'];
+  document.documentElement.style.setProperty('--size',sizes[st.settings.fontIndex]||sizes[0]);
+  el.audioBtn.textContent=`${st.settings.audio?'🔊':'🔇'} Audio: ${st.settings.audio?'On':'Off'}`;
+  el.contrastBtn.textContent=`◐ High Contrast: ${st.settings.contrast?'On':'Off'}`;
+  el.motionBtn.textContent=`⇄ ${cfg.ui.reducedMotion}: ${reduceMotion?'On':'Off'}`;
+  if(reduceMotion)perfTier=7;
+}
+function startLoader(){
+  const start=performance.now();
+  el.loaderFill.style.width='0%';
+  setTimeout(()=>el.loaderFill.style.width='80%',20);
+  setTimeout(()=>measurePerformance(),520);
+  setTimeout(()=>{
+    el.loaderFill.style.width='100%';
+    setTimeout(()=>{
+      const elapsed=performance.now()-start;
+      const wait=Math.max(0,500-elapsed);
+      setTimeout(()=>{
+        el.loadingScreen.style.opacity='0';
+        el.app.style.opacity='1';
+        setTimeout(()=>el.loadingScreen.classList.add('hidden'),320);
+      },wait);
+    },120);
+  },520);
+}
+function beginGame(){
+  st.startedAt=Date.now();
+  maybeComeback();
+  el.startScreen.classList.add('hidden');
+  el.resultsScreen.classList.add('hidden');
+  el.errorScreen.classList.add('hidden');
+  el.gameScreen.classList.remove('hidden');
+  nextProblem();
+}
+function maybeComeback(){
+  const last=storage.get('ewl_lastSessionTs',0);
+  if(last && Date.now()-last>86400000){
+    st.xp+=20;
+    unlockAchievement('Comeback');
+    showSpeech('Welcome back! Bonus XP earned.');
+  }
+}
+function nextProblem(forceSameConcept=false){
+  clearHint();
+  clearFeedback();
+  st.answerLocked=false;
+  st.currentAttemptCount=0;
+  st.lastProblemFirstTry=false;
+  const p=pickProblem(forceSameConcept);
+  if(!p){finishSession();return}
+  st.current=p;
+  renderProblem();
+  renderHud();
+}
+function pickProblem(forceSameConcept){
+  const tier=st.currentTier;
+  let pool=st.queue[tier];
+  if(!pool.length){
+    st.queue[tier]=shuffle(st.problemPools[tier].map(p=>({...p})));
+    pool=st.queue[tier];
+  }
+  let pickIndex=0;
+  if(forceSameConcept&&st.current){
+    const same=pool.findIndex(x=>x.concept===st.current.concept&&x.id!==st.current.id);
+    if(same>=0)pickIndex=same;
+  }
+  const p=pool.splice(pickIndex,1)[0];
+  return {...p,choices:shuffle(p.choices.map(c=>({...c})))}
+}
+function renderProblem(){
+  const zoneMap={
+    1:['Tier 1 · Shallow Reef','Build the algorithm with friendly numbers.'],
+    2:['Tier 2 · Midwater Canyon','Use stronger estimates and hold place value carefully.'],
+    3:['Tier 3 · Abyssal Trench','Handle larger dividends and zero placeholders precisely.']
+  };
+  el.zoneTitle.textContent=zoneMap[st.currentTier][0];
+  el.zoneSub.textContent=zoneMap[st.currentTier][1];
+  el.stemText.textContent=st.current.stem;
+  renderVisual(st.current.visual);
+  renderChoices();
+}
+function renderVisual(v){
+  el.visualWrap.classList.add('hidden');
+  el.visualWrap.innerHTML='';
+  if(!v||v.type==='none')return;
+  el.visualWrap.classList.remove('hidden');
+  if(v.type==='table'){
+    const t=v.data;
+    const table=document.createElement('table');
+    table.className='table-visual';
+    table.innerHTML=`<thead><tr>${t.headers.map(h=>`<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map(c=>`<td>${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+    el.visualWrap.appendChild(table);
+  }else if(v.type==='number-line'){
+    const d=v.data;
+    const wrap=document.createElement('div');
+    wrap.className='nl';
+    wrap.innerHTML='<div class="nl-line"></div>';
+    d.markers.forEach(m=>{
+      const pos=((m.value-d.min)/(d.max-d.min))*100;
+      const tick=document.createElement('div');
+      tick.className='nl-tick';
+      tick.style.left=`calc(20px + (${pos}% * (100% - 40px) / 100))`;
+      const lab=document.createElement('div');
+      lab.className='nl-label';
+      lab.style.left=`calc(20px + (${pos}% * (100% - 40px) / 100))`;
+      lab.textContent=`${m.value}`;
+      wrap.appendChild(tick);
+      wrap.appendChild(lab);
+    });
+    el.visualWrap.appendChild(wrap);
+  }else if(v.type==='graph'){
+    const d=v.data;
+    const box=document.createElement('div');
+    box.style.height='180px';
+    box.style.position='relative';
+    box.style.padding='8px 8px 22px 32px';
+    box.style.borderLeft='2px solid rgba(255,255,255,.35)';
+    box.style.borderBottom='2px solid rgba(255,255,255,.35)';
+    const maxX=Math.max(...d.points.map(p=>p[0]));
+    const maxY=Math.max(...d.points.map(p=>p[1]));
+    d.points.forEach(pt=>{
+      const dot=document.createElement('div');
+      dot.style.position='absolute';
+      dot.style.width='12px';
+      dot.style.height='12px';
+      dot.style.borderRadius='50%';
+      dot.style.background=(pt[0]===d.highlightPoint[0]&&pt[1]===d.highlightPoint[1])?'var(--accent1)':'rgba(255,255,255,.65)';
+      dot.style.left=`calc(${(pt[0]/maxX)*100}% - 6px)`;
+      dot.style.bottom=`calc(${(pt[1]/maxY)*100}% - 6px)`;
+      box.appendChild(dot);
+    });
+    const xl=document.createElement('div');
+    xl.style.position='absolute';xl.style.right='8px';xl.style.bottom='0';xl.style.color='var(--muted)';xl.textContent=d.xLabel;
+    const yl=document.createElement('div');
+    yl.style.position='absolute';yl.style.left='0';yl.style.top='0';yl.style.color='var(--muted)';yl.textContent=d.yLabel;
+    box.appendChild(xl);box.appendChild(yl);
+    el.visualWrap.appendChild(box);
+  }else if(v.type==='diagram'){
+    const p=document.createElement('p');
+    p.style.margin='0';
+    p.textContent=v.data.description||'Diagram';
+    el.visualWrap.appendChild(p);
+  }
+}
+function renderChoices(){
+  el.choiceGrid.innerHTML='';
+  choiceFocus=0;
+  st.current.choices.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='choice';
+    b.setAttribute('role','option');
+    b.setAttribute('aria-label',`Choice ${String.fromCharCode(65+i)} ${c.value}`);
+    b.dataset.index=i;
+    b.innerHTML=`<span class="badge">${String.fromCharCode(65+i)}</span><span class="txt">${escapeHtml(c.value)}</span>`;
+    b.onclick=()=>handleChoice(i);
+    b.addEventListener('keydown',choiceKeyNav);
+    el.choiceGrid.appendChild(b);
+  });
+}
+function handleChoice(i){
+  if(st.answerLocked||!st.current)return;
+  const choice=st.current.choices[i];
+  st.currentAttemptCount++;
+  st.attempts++;
+  st.lastProblemFirstTry=st.currentAttemptCount===1 && choice.correct;
+  if(choice.correct){
+    if(st.currentAttemptCount===1)st.firstTryCorrect++;
+    st.correctTotal++;
+    st.solved++;
+    st.score+=100;
+    const combo=st.streak>=10?2:st.streak>=5?1.5:1;
+    st.xp+=Math.round((10+(st.currentTier*5)+(st.streak*2))*combo);
+    st.streak++;
+    st.consecTierCorrect++;
+    st.consecErrors=0;
+    if(st.comebackTracker>=2){
+      unlockAchievement('Comeback');
+      st.comebackTracker=0;
+    }
+    if(st.currentTier===1&&st.consecTierCorrect>=3)advanceTier(2);
+    else if(st.currentTier===2&&st.consecTierCorrect>=2)advanceTier(3);
+    else showSpeech(cfg.ui.correctFeedback);
+    renderChoiceState(i,true);
+    setFeedback(cfg.ui.correctFeedback,true);
+    playTone('good');
+    mascotState('celebrate',800);
+    burstParticles();
+    if(st.currentTier===3 && st.streak>=3)unlockAchievement('Perfect Tier');
+    setTimeout(()=>finishAfterCorrect(),reduceMotion?0:380);
+  }else{
+    st.answerLocked=true;
+    st.streak=0;
+    st.consecTierCorrect=0;
+    st.consecErrors++;
+    st.comebackTracker++;
+    renderChoiceState(i,false);
+    setFeedback(cfg.ui.incorrectFeedback,false);
+    playTone('bad');
+    mascotState('encourage',1200);
+    if(st.consecErrors>=2&&st.currentTier>1){
+      st.currentTier--;
+      st.consecErrors=0;
+      showSpeech('We are dropping one tier so you can rebuild with support.');
+    }else{
+      showSpeech(cfg.ui.encouragementAfterReset);
+    }
+    const delay=st.currentAttemptCount===1?2000:0;
+    clearTimeout(lockTimer);
+    lockTimer=setTimeout(()=>{
+      st.answerLocked=false;
+      if(st.currentAttemptCount===1)showHint('conceptual');
+      else if(st.currentAttemptCount===2)showHint('procedural');
+      else showWorkedExample();
+    },delay);
+  }
+  renderHud();
+  if(st.attempts>=15&&!sessionThreeStars()){
+    finishSession();
+  }
+}
+function finishAfterCorrect(){
+  if(sessionThreeStars()){finishSession();return}
+  el.nextBtn.classList.remove('hidden');
+  el.nextBtn.focus();
+}
+function renderChoiceState(index,correct){
+  [...el.choiceGrid.children].forEach((btn,idx)=>{
+    btn.disabled=true;
+    btn.classList.add('locked');
+    if(idx===index)btn.classList.add(correct?'correct':'incorrect');
+  });
+}
+function clearHint(){
+  el.hintMount.innerHTML='';
+}
+function showHint(type){
+  clearHint();
+  const card=document.createElement('div');
+  card.className='hint-panel';
+  card.setAttribute('aria-live','polite');
+  const title=type==='conceptual'?'💡 Conceptual Hint':'📋 Procedural Hint';
+  const text=type==='conceptual'?st.current.hints.conceptual:st.current.hints.procedural;
+  card.innerHTML=`<div class="hint-head"><div class="hint-title">${title}</div><button class="hint-close" aria-label="Close hint">×</button></div><div>${escapeHtml(text)}</div>`;
+  card.querySelector('button').onclick=clearHint;
+  el.hintMount.appendChild(card);
+  card.focus?.();
+}
+function showWorkedExample(){
+  const lines=st.current.workedExample.split('\n');
+  el.workedBody.innerHTML='';
+  lines.forEach((line,idx)=>{
+    const div=document.createElement('div');
+    div.className='example-line'+(idx===lines.length-1?' hl':'');
+    div.textContent=line;
+    el.workedBody.appendChild(div);
+  });
+  el.workedMsg.textContent='';
+  el.workedInput.value='';
+  workedWrongSame=0;
+  lastWorkedValue='';
+  toggleModal(el.workedModalWrap,true,true);
+  setTimeout(()=>el.workedInput.focus(),30);
+}
+function submitWorkedExample(){
+  const a=(st.current.workedExampleAnswer||'').trim();
+  const v=el.workedInput.value.trim();
+  const isNum=!Number.isNaN(parseFloat(v))&&!Number.isNaN(parseFloat(a));
+  const good=isNum?Math.abs(parseFloat(v)-parseFloat(a))<0.001:v===a;
+  if(good){
+    el.workedMsg.textContent=cfg.ui.correctFeedback;
+    mascotState('celebrate',800);
+    toggleModal(el.workedModalWrap,false,true);
+    setTimeout(()=>nextProblem(true),320);
+    return;
+  }
+  if(v===lastWorkedValue && v!=='')workedWrongSame++; else workedWrongSame=1;
+  lastWorkedValue=v;
+  el.workedMsg.textContent=workedWrongSame>=3?'Check your calculation — try a different approach.':cfg.ui.incorrectFeedback;
+  el.workedInput.classList.remove('shake');
+  void el.workedInput.offsetWidth;
+  el.workedInput.classList.add('shake');
+}
+function toggleModal(node,show,worked=false){
+  node.classList.toggle('show',show);
+  node.setAttribute('aria-hidden',show?'false':'true');
+  if(!show&&worked)el.choiceGrid.querySelector('button')?.focus();
+}
+function choiceKeyNav(e){
+  const len=st.current.choices.length;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();choiceFocus=(choiceFocus+1)%len;focusChoice()}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();choiceFocus=(choiceFocus-1+len)%len;focusChoice()}
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();handleChoice(Number(e.currentTarget.dataset.index))}
+}
+function focusChoice(){
+  const btn=el.choiceGrid.children[choiceFocus];
+  if(btn)btn.focus();
+}
+function globalKeys(e){
+  if(e.key==='Escape'){
+    if(el.workedModalWrap.classList.contains('show'))return;
+    if(el.guideModalWrap.classList.contains('show'))toggleModal(el.guideModalWrap,false);
+  }
+}
+function setFeedback(txt,good){
+  el.feedback.textContent=txt;
+  el.feedback.className='feedback '+(good?'good':'bad');
+}
+function clearFeedback(){
+  el.feedback.textContent='';
+  el.feedback.className='feedback';
+}
+function renderHud(){
+  el.scoreVal.textContent=String(st.score);
+  el.streakVal.textContent=st.streak>=10?'10+':String(st.streak);
+  el.xpVal.textContent=String(st.xp);
+  el.tierVal.textContent=String(st.currentTier);
+  el.progressText.textContent=`${st.attempts} / 15`;
+  el.progressFill.style.width=`${Math.min(100,(st.attempts/15)*100)}%`;
+}
+function advanceTier(t){
+  st.currentTier=t;
+  st.consecTierCorrect=0;
+  st.consecErrors=0;
+  showSpeech(`Tier ${t} unlocked!`);
+}
+function sessionThreeStars(){
+  return computeStars()===3;
+}
+function computeStars(){
+  const pct=st.attempts?Math.round((st.firstTryCorrect/st.attempts)*100):0;
+  if(pct>=95)return 3;
+  if(pct>=80)return 2;
+  if(pct>=60)return 1;
+  return 0;
+}
+function finishSession(){
+  st.current=null;
+  storage.set('ewl_lastSessionTs',Date.now());
+  storage.set('ewl_achievements',[...st.unlocked]);
+  if(st.score>st.personalBest){
+    st.personalBest=st.score;
+    storage.set('ewl_personalBest',st.personalBest);
+  }
+  el.gameScreen.classList.add('hidden');
+  el.resultsScreen.classList.remove('hidden');
+  renderResults();
+  mascotState('celebrate',999999);
+}
+function renderResults(){
+  const stars=computeStars();
+  const acc=st.attempts?Math.round((st.firstTryCorrect/st.attempts)*100):0;
+  const title=stars===3?cfg.ui.completionMessage:cfg.ui.encouragementNearMiss;
+  const newRecord=st.score>=st.personalBest && st.score>0;
+  const badges=[...st.unlocked].filter(x=>!['Comeback'].includes(x)||st.achievements.includes('Comeback'));
+  el.resultsScreen.innerHTML=`
+    <div class="results-top">
+      <div>
+        <h2 class="mission-title">${escapeHtml(title)}</h2>
+        <p class="subtitle">Standard: ${escapeHtml(cfg.standard)} · ${escapeHtml(cfg.standardDescription)}</p>
+      </div>
+      <div class="stars" aria-label="${stars} stars">${['★','★','★'].map((s,i)=>`<span class="star" style="${i<stars?'color:var(--streak)':'color:rgba(255,255,255,.25)'}">${s}</span>`).join('')}</div>
+    </div>
+    ${newRecord?`<div class="record-badge">${escapeHtml(cfg.ui.newRecord)} · ${st.score}</div>`:''}
+    <div class="stats-grid">
+      <div class="stat-card"><p class="k">Problems Solved</p><div class="v">${st.solved}</div></div>
+      <div class="stat-card"><p class="k">Accuracy</p><div class="v">${acc}%</div></div>
+      <div class="stat-card"><p class="k">Best Streak</p><div class="v">${Math.min(10,st.streak)}${st.streak>=10?'+':''}</div></div>
+      <div class="stat-card"><p class="k">XP Earned</p><div class="v">${st.xp}</div></div>
+    </div>
+    ${badges.length?`<div class="achievement-row">Achievements: ${badges.join(' · ')}</div>`:''}
+    <div class="controls">
+      <button id="playAgainBtn">${escapeHtml(cfg.ui.playAgain)}</button>
+      <button id="exitBtn" class="secondary">${escapeHtml(cfg.ui.exit)}</button>
+    </div>
+  `;
+  const playAgainBtn=document.getElementById('playAgainBtn');
+  const exitBtn=document.getElementById('exitBtn');
+  playAgainBtn.onclick=playAgain;
+  exitBtn.onclick=exitGame;
+}
+function playAgain(){
+  el.resultsScreen.style.opacity='0';
+  setTimeout(()=>{
+    syncReset();
+    el.resultsScreen.style.opacity='1';
+    el.resultsScreen.classList.add('hidden');
+    el.startScreen.classList.remove('hidden');
+    mascotState('idle',0);
+  },300);
+}
+function syncReset(){
+  refillQueues();
+  st.currentTier=1;
+  st.streak=0;
+  st.score=0;
+  st.xp=0;
+  st.attempts=0;
+  st.solved=0;
+  st.correctTotal=0;
+  st.firstTryCorrect=0;
+  st.consecTierCorrect=0;
+  st.consecErrors=0;
+  st.currentAttemptCount=0;
+  st.sessionTimestamp=Date.now();
+  st.achievements=[];
+  st.comebackTracker=0;
+  st.answerLocked=false;
+  st.current=null;
+  clearHint();
+  clearFeedback();
+  renderHud();
+}
+function exitGame(){
+  if(location.protocol==='file:' || location.hostname.includes('sandbox')){
+    el.fadeBlack.classList.add('show');
+  }else{
+    location.href=HUB_URL;
+  }
+}
+function unlockAchievement(name){
+  if(st.unlocked.has(name))return;
+  st.unlocked.add(name);
+  st.achievements.push(name);
+  showToast(`Achievement unlocked: ${name}`);
+}
+function ensureAudioOnGesture(){
+  if(audioCtx)return;
+  try{
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+  }catch(err){console.error(err)}
+}
+function playTone(kind){
+  if(!st.settings.audio||!audioCtx)return;
+  try{
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+    osc.type='sine';
+    osc.frequency.value=kind==='good'?660:220;
+    gain.gain.value=.001;
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(.08,audioCtx.currentTime+.02);
+    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.16);
+    osc.stop(audioCtx.currentTime+.18);
+  }catch(err){console.error(err)}
+}
+function showSpeech(txt){
+  clearTimeout(speechTimer);
+  el.speech.textContent=txt;
+  el.speech.classList.remove('hidden');
+  speechTimer=setTimeout(()=>el.speech.classList.add('hidden'),3000);
+}
+function showToast(txt){
+  clearTimeout(toastTimer);
+  el.toast.textContent=txt;
+  el.toast.classList.remove('hidden');
+  toastTimer=setTimeout(()=>hideToast(),2800);
+}
+function hideToast(){el.toast.classList.add('hidden')}
+function showError(){
+  el.loadingScreen.classList.add('hidden');
+  el.app.style.opacity='1';
+  el.startScreen.classList.add('hidden');
+  el.gameScreen.classList.add('hidden');
+  el.resultsScreen.classList.add('hidden');
+  el.errorScreen.classList.remove('hidden');
+}
+function initBubbles(){
+  const count=reduceMotion?0:14;
+  el.bubbleLayer.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('span');
+    s.style.left=`${Math.random()*100}%`;
+    const dur=14+Math.random()*14;
+    s.style.animationDuration=`${dur}s`;
+    s.style.animationDelay=`-${Math.random()*dur}s`;
+    s.style.width=s.style.height=`${8+Math.random()*18}px`;
+    el.bubbleLayer.appendChild(s);
+  }
+}
+function initCanvas(){
+  const c=el.particleCanvas;
+  if(!c.getContext){console.error('canvas');return}
+  const ctx=c.getContext('2d');
+  function fit(){c.width=innerWidth;c.height=innerHeight}
+  fit();
+  addEventListener('resize',fit);
+  let parts=[];
+  function tick(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts=parts.filter(p=>p.life>0);
+    parts.forEach(p=>{
+      p.life-=1;
+      if(perfTier<=3){p.vy+=0.03}
+      p.x+=p.vx;
+      p.y+=p.vy;
+      p.a=p.life/p.max;
+      ctx.globalAlpha=p.a;
+      ctx.fillStyle='rgba(103,232,249,.9)';
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(tick);
+  }
+  tick();
+  window.burstParticles=()=>{
+    if(reduceMotion||perfTier>=7)return;
+    const n=perfTier>=2?15:30;
+    for(let i=0;i<n;i++){
+      parts.push({
+        x:innerWidth*0.62,
+        y:innerHeight*0.45,
+        vx:(Math.random()-.5)*4,
+        vy:(Math.random()-.9)*4,
+        r:2+Math.random()*3,
+        life:45+Math.random()*20,
+        max:60
+      });
+    }
+  };
+}
+function burstParticles(){window.burstParticles&&window.burstParticles()}
+function measurePerformance(){
+  if(reduceMotion){perfTier=7;console.log('[EWL] Perf tier:',perfTier);return}
+  let frames=0,last=0,deltas=[];
+  function step(ts){
+    if(!last){last=ts;requestAnimationFrame(step);return}
+    const d=ts-last;last=ts;
+    frames++;
+    if(frames>3)deltas.push(d);
+    if(deltas.length<10){requestAnimationFrame(step);return}
+    const avg=deltas.reduce((a,b)=>a+b,0)/deltas.length;
+    if(avg>20)perfTier=2;
+    if(avg>24)perfTier=4;
+    if(avg>28)perfTier=6;
+    if(avg>32)perfTier=7;
+    if(perfTier>=3)el.parallaxBg.style.animation='none';
+    if(perfTier>=6)document.getElementById('mascot')?.classList.remove('idle');
+    console.log('[EWL] Perf tier:',perfTier);
+  }
+  requestAnimationFrame(step);
+}
+function mascotState(state,ms){
+  const m=el.mascot;
+  if(!m)return;
+  m.className=state;
+  if(ms>0&&ms<999999)setTimeout(()=>m.className='idle',ms);
+}
+function shuffle(a){
+  const arr=[...a];
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+}
+init();
+</script>
+</body>
+</html>
